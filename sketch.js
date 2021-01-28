@@ -5,17 +5,60 @@ const zoomRatio = 1.4; // Sets the zoom factor
 const materials = {
   boxes: {
     rendered: false,
-    selected: 'specular'
+    materialSelectDefault: 'emissive',
+
+    specShininessDefault: 1,
+    colorPickerDefault: '#18ef50',
+    ambientLightPickerDefault: '#ffffff',
+    specColorPickerDefault: '#00ff00',
+    specAmbientLightPickerDefault: '#999999',
+    specPointLightPickerDefault: {
+      levels: [255, 255, 0]
+    }
   },
   confetti: {
     confetti: false,
-    selected: 'specular'
+    materialSelectDefault: 'specular',
+
+    specShininessDefault: 1,
+    colorPickerDefault: '#18ef50',
+    ambientLightPickerDefault: '#ffffff',
+    specColorPickerDefault: '#00ff00',
+    specAmbientLightPickerDefault: '#999999',
+    specPointLightPickerDefault: {
+      levels: [255, 255, 0]
+    }
   }
 };
+
+
+
+
+
 let font;
+let boldFont;
+
+const canvasWidth = 900;
+const canvasHeight = 800;
+
+
+const menuButton = {
+  x: 274,
+  y: 0,
+  width: 26,
+  height: canvasHeight
+};
+
+const menu = {
+  open: true,
+  openX: 0,
+  closedX: -276
+};
+
 
 function preload () {
-  font = loadFont('./assets/ArialBlack.ttf');
+  font = loadFont('./assets/Arial.ttf');
+  boldFont = loadFont('./assets/ArialBold.ttf');
 }
 
 
@@ -25,11 +68,10 @@ function preload () {
  * @return void.
  */
 function setup () {
-  createCanvas(900, 800, WEBGL);
+  createCanvas(canvasWidth, canvasHeight, WEBGL);
   angleMode(DEGREES);
 
   initConfetti();
-
 }
 
 /**
@@ -39,16 +81,10 @@ function setup () {
  */
 function draw () {
   background(125);
-
-  // Boxes material selector
-  createBoxMaterialSelect(10, 20, 'boxes');
-
-  // Confetti material selector
-  createBoxMaterialSelect(630, 20, 'confetti');
   
   push();
 
-  // Camera
+  // // Camera
   rotateCamera();
 
   // Boxes
@@ -59,7 +95,115 @@ function draw () {
 
   pop();
 
+  // Draw menu  
+  drawMenu();
   
+}
+
+
+function drawMenu () {
+  const menuX = menu.open ? menu.openX : menu.closedX;
+  const menuText = menu.open ? 'CLOSE MENU' : 'SHOW MENU';
+  push();
+  // Translate to top left to make things easier
+  translate(-width / 2, -height / 2);
+  
+  noStroke();
+  // Menu
+  fill(240);
+  translate(menuX, 0);
+  rect(0, 0, 300, height);
+  // Menu border
+  fill(0)
+  rect(274, 0, 26, height);
+  // Title area
+  translate(280, 10);
+  fill(255, 255, 0);
+  // Arrow
+  push()
+  if (menu.open) {
+    translate(12, 24);
+    rotate(180);
+  } else {
+    translate(3, 10);
+  }
+  triangle(0, 0, 10, 10, 0, 20);
+  pop();
+  // Text
+  push();
+  textFont(boldFont);
+  textAlign(LEFT);
+  fill(255, 255, 0);
+  textSize(16);
+  noStroke();
+  translate(13, 140);
+  rotate(-90);
+  text(menuText, 0, 0);
+  pop();
+  pop();
+  // Material menu
+  drawMaterialMenu();
+}
+
+
+function drawMaterialMenu () {
+  const menuX = menu.open ? menu.openX : menu.closedX;
+  push();
+  noStroke();
+  // Translate to top left to make things easier
+  translate(-width / 2, -height / 2);
+  // Title
+  translate(10, 20);
+  textFont(boldFont);
+  textAlign(LEFT);
+  fill(0);
+  textSize(14);
+  text('MATERIALS', 0, 0);
+  // HR
+  push();
+  stroke(0);
+  strokeWeight(1);
+  line(0, 10, 240, 10)
+  pop();
+  // Boxes material selector
+  createBoxMaterialSelect(0, 34, 'boxes');
+  // Calculate next menus y position
+  let yOffset;
+  switch (materials.boxes.materialSelect ? materials.boxes.materialSelect.value() : materials.boxes.materialSelectDefault) {
+    case 'specular':
+      yOffset = 174;
+    break;
+    case 'normal':
+      yOffset = 50;
+    break;
+    case 'emissive':
+      yOffset = 84;
+    break;
+    default:
+      yOffset = 118;
+  };
+  // HR
+  push();
+  stroke(160);
+  strokeWeight(1);
+  line(0, yOffset, 240, yOffset)
+  pop();
+  // Confetti material selector
+  createBoxMaterialSelect(0, yOffset + 24, 'confetti');
+  pop();
+}
+
+
+function mousePressed () {
+  const menuButtonX = menu.open ? menuButton.x : menuButton.x - 276;
+  if (
+    mouseX > menuButtonX &&
+    mouseX < (menuButtonX+ menuButton.width) &&
+    mouseY > menuButton.y &&
+    mouseY < (menuButton.y + menuButton.height)
+  ) {
+    menu.open = !menu.open;
+  }
 }
 
 /**
@@ -77,19 +221,31 @@ function initConfetti () {
 
 
 function getMaterial (item) {
-  switch(materials[item].selected) {
+  switch(materials[item].materialSelect ? materials[item].materialSelect.value() : materials[item].materialSelectDefault) {
     case 'ambient':
-      ambientLight(color(materials[item].lightPicker.color()));
+      ambientLight(color(materials[item].ambientLightPicker.color()));
       ambientMaterial(color(materials[item].colorPicker.color()));
     break;
     case 'emissive':
-      emissiveMaterial(color(materials[item].colorPicker.color()));
+      emissiveMaterial(color(
+        materials[item].colorPicker ? materials[item].colorPicker.color() : materials[item].colorPickerDefault
+      ));
     break;
     case 'specular':
-      shininess(80);
-      ambientLight(100);
-      specularColor(0, 255, 0);
-      pointLight(255, 255, 255, mouseX - height / 2, mouseY - width / 2, 100);
+      shininess(
+        materials[item].specShininess ? materials[item].specShininess.value() : materials[item].specShininessDefault
+      );
+      ambientLight(color(
+        materials[item].specAmbientLightPicker ? materials[item].specAmbientLightPicker.color() : materials[item].specAmbientLightPickerDefault
+      ));
+      specularColor(color(
+        materials[item].specColorPicker ? materials[item].specColorPicker.color() : materials[item].specColorPickerDefault
+      ));
+      pointLight(
+        (materials[item].specPointLightPicker ? materials[item].specPointLightPicker.color().levels[0] : materials[item].specPointLightPickerDefault.levels[0]),
+        (materials[item].specPointLightPicker ? materials[item].specPointLightPicker.color().levels[1] : materials[item].specPointLightPickerDefault.levels[1]),
+        (materials[item].specPointLightPicker ? materials[item].specPointLightPicker.color().levels[2] : materials[item].specPointLightPickerDefault.levels[2]),
+        mouseX - height / 2, mouseY - width / 2, 100);
       specularMaterial(250);
     break;
     default:
@@ -164,56 +320,73 @@ function confetti () {
 }
 
 function createBoxMaterialSelect (x, y, item) {
-  
+  const controlsXOffset = 120;
+  const selected = materials[item].materialSelect ? materials[item].materialSelect.value() : materials[item].materialSelectDefault;
   push();
-  translate(-width / 2, -height / 2);
-  textFont(font);
-  textAlign(RIGHT);
-  fill(255);
-  textSize(16);
-  noStroke();
-  text(`${item} material:`, x + 130, y);
-  if (materials[item].selected === 'ambient' || materials[item].selected === 'emissive') {
-    text(`object colour:`, x + 130, y + 28);
-  }
-  if (materials[item].selected === 'specular') {
-    push();
-    textSize(14);
-    text(`move your mouse to affect the light position`, x + 130, y + 28);
-    pop();
-  }
-  if (materials[item].selected === 'ambient') {
-    text(`light colour:`, x + 130, y + 56);
-  }
   textAlign(CENTER);
   if (!materials[item].rendered) {
-    const sel = createSelect();
-    sel.position(x + 134, y - 15);
-    sel.option('normal');
-    sel.option('ambient');
-    sel.option('emissive');
-    sel.option('specular');
-    sel.selected(materials[item].selected);
-    sel.changed(() => materialSelectEvent(sel, item));
-    materials[item].colorPicker = createColorPicker('#18ef50');
-    materials[item].lightPicker = createColorPicker('#ffffff');
+    materials[item].materialSelect = createSelect();
+    materials[item].materialSelect.option('normal');
+    materials[item].materialSelect.option('ambient');
+    materials[item].materialSelect.option('emissive');
+    materials[item].materialSelect.option('specular');
+    materials[item].materialSelect.selected(selected);
+    //materials[item].materialSelect.changed(() => materialSelectEvent(item));
+    materials[item].colorPicker = createColorPicker(materials[item].colorPickerDefault);
+    materials[item].ambientLightPicker = createColorPicker(materials[item].ambientLightPickerDefault);
+    materials[item].specColorPicker = createColorPicker(materials[item].specColorPickerDefault);
+    materials[item].specAmbientLightPicker = createColorPicker(materials[item].specAmbientLightPickerDefault);
+    materials[item].specPointLightPicker = createColorPicker(
+      materials[item].specPointLightPickerDefault.levels[0],
+      materials[item].specPointLightPickerDefault.levels[1],
+      materials[item].specPointLightPickerDefault.levels[2],
+    );
+    materials[item].specShininess = createSlider(1, 100, materials[item].specShininessDefault);
+    materials[item].specShininess.style('width', '100px');
     materials[item].rendered = true;
   } else {
-    if (materials[item].selected === 'ambient' || materials[item].selected === 'emissive') {
-      materials[item].colorPicker.position(x + 134, y + 8);
+    materials[item].materialSelect.position(x + controlsXOffset, y + 6);
+    if (selected === 'ambient' || selected === 'emissive') {
+      materials[item].colorPicker.position(x + controlsXOffset, y + 31);
     } else {
-      materials[item].colorPicker.position(x + 134, -3000);
+      materials[item].colorPicker.position(x + controlsXOffset, -3000);
     }
-    if (materials[item].selected === 'ambient') {
-      materials[item].lightPicker.position(x + 134, y + 38);
+    if (selected === 'ambient') {
+      materials[item].ambientLightPicker.position(x + controlsXOffset, y + 64);
     } else {
-      materials[item].lightPicker.position(x + 134, -3000);
+      materials[item].ambientLightPicker.position(x + controlsXOffset, -3000);
+    }
+    if (selected === 'specular') {
+      materials[item].specColorPicker.position(x + controlsXOffset, y + 31);
+      materials[item].specAmbientLightPicker.position(x + controlsXOffset, y + 64);
+      materials[item].specPointLightPicker.position(x + controlsXOffset, y + 97);
+      materials[item].specShininess.position(x + controlsXOffset, y + 130);
+    } else {
+      materials[item].specColorPicker.position(x + controlsXOffset, -3000);
+      materials[item].specAmbientLightPicker.position(x + controlsXOffset, -3000);
+      materials[item].specPointLightPicker.position(x + controlsXOffset, -3000);
+      materials[item].specShininess.position(x + controlsXOffset, y + -3000);
     }
   }
+  textFont(font);
+  textAlign(LEFT);
+  fill(0);
+  textSize(14);
+  noStroke();
+  text(`${item}:`, x, y);
+  if (selected=== 'ambient' || selected === 'emissive') {
+    text(`object:`, x, y + 30);
+  }
+  if (selected === 'ambient') {
+    text(`ambient light:`, x, y + 62);
+  }
+  if (selected === 'specular') {
+    text(`specular:`, x, y + 30);
+    text(`ambient light:`, x, y + 62);
+    text(`point light:`, x, y + 94);
+    text(`shininess:`, x, y + 126);
+    textAlign(RIGHT);
+    text(`${materials[item].specShininess.value()}`, x + 240, y + 126);
+  }
   pop();
-}
-
-function materialSelectEvent (select, item) {
-  const value = select.value();
-  materials[item].selected = value;
 }
