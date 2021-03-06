@@ -6,7 +6,7 @@ const materials = {
   // Box material and light settings settings
   boxes: {
     rendered: false, // Determine if we've already rendered this
-    materialSelectDefault: 'specular', // Default material
+    materialSelectDefault: 'normal', // Default material
     specShininessDefault: 1, // Default shininess
     colorPickerDefault: '#18ef50', // Default colour
     ambientLightPickerDefault: '#ff4400', // Default ambient light colour
@@ -20,7 +20,7 @@ const materials = {
   // Box material and light settings settings
   confetti: {
     confetti: false,
-    materialSelectDefault: 'specular',
+    materialSelectDefault: 'normal',
     specShininessDefault: 1,
     colorPickerDefault: '#18ef50',
     ambientLightPickerDefault: '#ff4400',
@@ -73,7 +73,7 @@ const menuButton = {
 };
 // Menu specifics so we can move it in and out of view
 const menu = {
-  open: true,
+  open: false,
   openX: 0,
   closedX: -276
 };
@@ -396,9 +396,10 @@ function drawBoxes () {
     const maxHeight = settings.boxHeightMax.slider ? settings.boxHeightMax.slider.value() : settings.boxHeightMax.default;
     const minHeight = settings.boxHeightMin.slider ? settings.boxHeightMin.slider.value() : settings.boxHeightMin.default;
     const noiseAmount = settings.noise.slider ? settings.noise.slider.value() : settings.noise.default;
-    getMaterial('boxes');
-    // Commented out as we are dynamically selecting the type of material used, with getMaterial('boxes') above
+    // Step 2: We are using normal material as per Marking Rubric Step 2, but the following has been commented out
+    // in favour of it being set dynamically using the getMaterial function, allowing it to be set by the user
     // normalMaterial();
+    getMaterial('boxes');
     stroke(0);
     strokeWeight(2);
     translate(i, 0, 0);
@@ -445,9 +446,10 @@ function confetti () {
     const v = confLocs[i];
     confLocs[i].set(v.x, v.y + 1, v.z);
     push();
+    // Step 2: We are using normal material as per Marking Rubric Step 2, but the following has been commented out
+    // in favour of it being set dynamically using the getMaterial function, allowing it to be set by the user
+    // normalMaterial();
     getMaterial('confetti');
-    // Commented out as we are dynamically selecting the type of material used, with getMaterial('confetti') above
-    //normalMaterial();
     noStroke();
     translate(v.x, v.y, v.z);
     rotateX(confTheta[i] + (frameCount * 10));
