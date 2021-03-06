@@ -3,19 +3,21 @@ let confTheta = []; // Stores the initial angle of each piece of confetti
 const numOfConfetti = 200; // Number of confetti pieces
 // Stores the defaults for the material settings
 const materials = {
+  // Box material and light settings settings
   boxes: {
-    rendered: false,
-    materialSelectDefault: 'specular',
-    specShininessDefault: 1,
-    colorPickerDefault: '#18ef50',
-    ambientLightPickerDefault: '#ff4400',
-    specColorPickerDefault: '#ff4400',
-    specAmbientLightPickerDefault: '#999999',
+    rendered: false, // Determine if we've already rendered this
+    materialSelectDefault: 'specular', // Default material
+    specShininessDefault: 1, // Default shininess
+    colorPickerDefault: '#18ef50', // Default colour
+    ambientLightPickerDefault: '#ff4400', // Default ambient light colour
+    specColorPickerDefault: '#ff4400', // Default specular colour
+    specAmbientLightPickerDefault: '#999999', // Default specular ambient light colour
     specPointLightPickerDefault: {
-      levels: [255, 255, 0]
+      levels: [255, 255, 0] // Default specular point light colour
     },
-    specGrayValueDefault: 70
+    specGreyValueDefault: 70 // Default grey value
   },
+  // Box material and light settings settings
   confetti: {
     confetti: false,
     materialSelectDefault: 'specular',
@@ -27,34 +29,34 @@ const materials = {
     specPointLightPickerDefault: {
       levels: [255, 255, 0]
     },
-    specGrayValueDefault: 70
+    specGreyValueDefault: 70
   }
 };
 // Stores the defaults for the settings
 const settings = {
   waveSpeed: {
-    rendered: false,
-    default: 1
+    rendered: false, // Determine if we've already rendered this
+    default: 1 // Default speed
   },
   boxHeightMax: {
     rendered: false,
-    default: 300
+    default: 300 // Default height
   },
   boxHeightMin: {
     rendered: false,
-    default: 100
+    default: 100 // Default height
   },
   noise: {
     rendered: false,
-    default: 0
+    default: 0 // Default noise
   },
   zoom: {
     rendered: false,
-    default: 4
+    default: 4 // Default zoom level
   },
   placement: {
     rendered: false,
-    default: -600
+    default: -600 // Default camera placement
   },
 };
 let font; // Standard font for preloading
@@ -71,7 +73,7 @@ const menuButton = {
 };
 // Menu specifics so we can move it in and out of view
 const menu = {
-  open: false,
+  open: true,
   openX: 0,
   closedX: -276
 };
@@ -114,7 +116,7 @@ function draw () {
 
   // Noise detail level
   noiseDetail(4);
-  
+
   push();
 
   // Camera
@@ -122,15 +124,14 @@ function draw () {
 
   // Boxes
   drawBoxes();
-  
+
   // Confetti
   confetti();
 
   pop();
 
-  // Draw menu  
+  // Draw menu
   drawMenu();
-  
 }
 
 /**
@@ -181,6 +182,8 @@ function drawMenu () {
   drawMaterialMenu();
   // Settings
   drawSettingsMenu();
+  // Noise
+  drawNoiseMenu();
 }
 
 /**
@@ -192,21 +195,12 @@ function drawMaterialMenu () {
   const menuX = menu.open ? menu.openX : menu.closedX;
   push();
   noStroke();
-  // Translate to top left to make things easier
+  // Translate to starting position first, to make things easier...
   translate(-width / 2, -height / 2);
-  // Title
+  // ... then begin
   translate(10, 20);
-  textFont(boldFont);
-  textAlign(LEFT);
-  fill(0);
-  textSize(14);
-  text('MATERIALS', menuX, 0);
-  // HR
-  push();
-  stroke(0);
-  strokeWeight(1);
-  line(menuX, 10, menuX + 240, 10)
-  pop();
+  // Title
+  drawTitle ('MATERIALS & LIGHT', 10, 20, menuX)
   // Boxes material selector
   drawMaterialSettings(0, 34, 'boxes');
   // Get menus y position
@@ -223,6 +217,30 @@ function drawMaterialMenu () {
 }
 
 /**
+ * Draw a title
+ *
+ * @param {string} label - The title to display
+ * @param {number} x - The x coord of the title
+ * @param {number} y - The y coord of the title
+ * @param {number} menuLeft - The x coord of the menu, dependant on it's state
+ *
+ * @return void.
+ */
+ function drawTitle (label, x, y, menuLeft) {
+  push();
+  textFont(boldFont);
+  textAlign(LEFT);
+  fill(0);
+  textSize(14);
+  text(label, menuLeft, 0);
+  // HR
+  stroke(0);
+  strokeWeight(1);
+  line(menuLeft, 10, menuLeft + 240, 10)
+  pop();
+}
+
+/**
  * Draws the settings section of the menu
  *
  * @return void.
@@ -232,28 +250,39 @@ function drawSettingsMenu () {
   const yOffset = getMenusYOffset('boxes') + getMenusYOffset('confetti') + 30;
   push();
   noStroke();
-  // Translate to top left to make things easier
+  // Translate to starting position first, to make things easier...
   translate(-width / 2, (-height / 2) + yOffset);
-  // Title
+  // ... then begin
   translate(10, 20);
-  textFont(boldFont);
-  textAlign(LEFT);
-  fill(0);
-  textSize(14);
-  text('SETTINGS', menuX, 0);
-  // HR
-  push();
-  stroke(0);
-  strokeWeight(1);
-  line(menuX, 10, menuX + 240, 10)
-  pop();
+  // Title
+  drawTitle ('SETTINGS', 10, 20, menuX)
   // Call render on the various sliders
   drawAnimationSettingsSlider(0, 34, yOffset, 1, 50, 'waveSpeed', 'wave speed');
   drawAnimationSettingsSlider(0, 64, yOffset, 1, 800, 'boxHeightMin', 'min box height');
   drawAnimationSettingsSlider(0, 94, yOffset, 10, 800, 'boxHeightMax', 'max box height');
   drawAnimationSettingsSlider(0, 124, yOffset, 1, 10, 'zoom', 'camera distance');
   drawAnimationSettingsSlider(0, 154, yOffset, -2000, 2000, 'placement', 'camera pos');
-  drawAnimationSettingsSlider(0, 184, yOffset, 0, 50, 'noise', 'noise');
+  pop();
+}
+
+/**
+ * Draws the noise section of the menu
+ *
+ * @return void.
+ */
+ function drawNoiseMenu () {
+  const menuX = menu.open ? menu.openX : menu.closedX;
+  const yOffset = getMenusYOffset('boxes') + getMenusYOffset('confetti') + 236;
+  push();
+  noStroke();
+  // Translate to starting position first, to make things easier...
+  translate(-width / 2, (-height / 2) + yOffset);
+  // ... then begin
+  translate(10, 20);
+  // Title
+  drawTitle ('NOISE', 10, 20, menuX)
+  // Call render on the various sliders
+  drawAnimationSettingsSlider(0, 34, yOffset, 0, 50, 'noise', 'noise');
   pop();
 }
 
@@ -261,7 +290,7 @@ function drawSettingsMenu () {
  * Calculates the y position of the menus depeding on how many material options are being shown.
  *
  * @param {string} item - The key of the material menu we're calculating how many items are being shown
- * 
+ *
  * @return {number} - The y offset
  */
 function getMenusYOffset (item) {
@@ -317,7 +346,7 @@ function initConfetti () {
  * Calls P5 material functions on an item, depending on what was selected
  *
  * @param {string} item - The material function types to call
- * 
+ *
  * @return void.
  */
 function getMaterial (item) {
@@ -347,7 +376,7 @@ function getMaterial (item) {
         (materials[item].specPointLightPicker ? materials[item].specPointLightPicker.color().levels[2] : materials[item].specPointLightPickerDefault.levels[2]),
         mouseX - height / 2, mouseY - width / 2, 100);
       specularMaterial(
-        materials[item].specGrayValue ? materials[item].specGrayValue.value() : materials[item].specGrayValueDefault
+        materials[item].specGreyValue ? materials[item].specGreyValue.value() : materials[item].specGreyValueDefault
       );
     break;
     default:
@@ -417,14 +446,14 @@ function confetti () {
     confLocs[i].set(v.x, v.y + 1, v.z);
     push();
     getMaterial('confetti');
-    // TODO - Say why this is commented out
+    // Commented out as we are dynamically selecting the type of material used, with getMaterial('confetti') above
     //normalMaterial();
     noStroke();
     translate(v.x, v.y, v.z);
     rotateX(confTheta[i] + (frameCount * 10));
     plane(15, 15);
     pop();
-    // If a piece has reached the middle, reset it    
+    // If a piece has reached the middle, reset it
     if (v.y > 0) {
       confLocs[i].set(v.x, -800, v.z);
     }
@@ -437,7 +466,7 @@ function confetti () {
  * @param {number} xPos - The x position of the meny
  * @param {number} yPos - The y position of the meny
  * @param {string} item - The object we're applying the settings to
- * 
+ *
  * @return void.
  */
 function drawMaterialSettings (xPos, yPos, item) {
@@ -469,8 +498,8 @@ function drawMaterialSettings (xPos, yPos, item) {
     // Create sliders
     materials[item].specShininess = createSlider(1, 100, materials[item].specShininessDefault);
     materials[item].specShininess.style('width', '100px');
-    materials[item].specGrayValue = createSlider(0, 255, materials[item].specGrayValueDefault);
-    materials[item].specGrayValue.style('width', '100px');
+    materials[item].specGreyValue = createSlider(0, 255, materials[item].specGreyValueDefault);
+    materials[item].specGreyValue.style('width', '100px');
     materials[item].rendered = true;
   } else {
     // We've created the items, now position them
@@ -490,13 +519,13 @@ function drawMaterialSettings (xPos, yPos, item) {
       materials[item].specAmbientLightPicker.position(x + controlsXOffset, y + 64);
       materials[item].specPointLightPicker.position(x + controlsXOffset, y + 97);
       materials[item].specShininess.position(x + controlsXOffset, y + 130);
-      materials[item].specGrayValue.position(x + controlsXOffset, y + 163);
+      materials[item].specGreyValue.position(x + controlsXOffset, y + 163);
     } else {
       materials[item].specColorPicker.position(x + controlsXOffset, -3000);
       materials[item].specAmbientLightPicker.position(x + controlsXOffset, -3000);
       materials[item].specPointLightPicker.position(x + controlsXOffset, -3000);
       materials[item].specShininess.position(x + controlsXOffset, y + -3000);
-      materials[item].specGrayValue.position(x + controlsXOffset, y + -3000);
+      materials[item].specGreyValue.position(x + controlsXOffset, y + -3000);
     }
   }
   // Draw the labels
@@ -517,10 +546,10 @@ function drawMaterialSettings (xPos, yPos, item) {
     text(`ambient light:`, x, y + 62);
     text(`point light:`, x, y + 94);
     text(`shininess:`, x, y + 126);
-    text(`gray value:`, x, y + 158);
+    text(`grey value:`, x, y + 158);
     textAlign(RIGHT);
     text(`${materials[item].specShininess.value()}`, x + 240, y + 126);
-    text(`${materials[item].specGrayValue.value()}`, x + 240, y + 158);
+    text(`${materials[item].specGreyValue.value()}`, x + 240, y + 158);
   }
   pop();
 }
@@ -535,7 +564,7 @@ function drawMaterialSettings (xPos, yPos, item) {
  * @param {number} max - The max slider value
  * @param {string} item - The object we're applying the settings to
  * @param {string} label - The sliders label
- * 
+ *
  * @return void.
  */
 function drawAnimationSettingsSlider (xPos, yPos, yOffset, min, max, item, label) {
